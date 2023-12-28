@@ -1,0 +1,1 @@
+aws configservice describe-compliance-by-config-rule --compliance-types NON_COMPLIANT | jq -r '.ComplianceByConfigRules[] | [.ConfigRuleName, .Compliance.ComplianceType, .Compliance.ComplianceContributorCount.CappedCount, .Compliance.ComplianceContributorCount.CapExceeded] | @tsv'
