@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Function to join array elements with a specified delimiter
+join_by() {
+    local IFS="$1"
+    shift
+    echo "$*"
+}
+
+# Get all ALB/NLB ARNs and read into an array
+readarray -t all_lbs < <(aws elbv2 describe-load-balancers --query "LoadBalancers[*].LoadBalancerArn" --output text)
+
+# Initialize variables
+batch_size=20
+total=${#all_lbs[@]}
+joined_json=""
+
+# Loop through all ARNs in batches of 20
+for (( i=0; i<total; i+=batch_size )); do
+    # Get a slice of 20 ARNs
+    part=( "${all_lbs[@]:i:batch_size}" )
+    
+    # Join the ARNs with space as delimiter
+    joined_arns=$(join_by " " "${part[@]}")
+
+    # Get tags for this batch of ARNs
+    batch_tags=$(aws elbv2 describe-tags --resource-arns $joined_arns)
+
+    # Combine the results
+    if [[ -z "$joined_json" ]]; then
+        joined_json=$batch_tags
+    else
+        # Merge the TagDescriptions arrays
+        joined_json=$(jq -s '.[0].TagDescriptions += .[1].TagDescriptions | .[0]' <(echo $joined_json) <(echo $batch_tags))
+    fi
+done
+
+# Output the combined results
+echo $joined_json | jq .
