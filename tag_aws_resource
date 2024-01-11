@@ -1,0 +1,4 @@
+def tag_aws_resource(arn, tag_name, tag_value, region):
+    client = boto3.client('resourcegroupstaggingapi', region_name=region)
+    tags = {tag_name: tag_value}
+    client.tag_resources(ResourceARNList=[arn], Tags=tags)
