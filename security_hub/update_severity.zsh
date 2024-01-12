@@ -1,4 +1,3 @@
-Certainly! The revised script will take the new severity level as the first argument
 #!/bin/zsh
 
 # Check for minimum number of arguments
